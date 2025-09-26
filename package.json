@@ -9,7 +9,10 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "-": "^0.0.1",
+    "@fal-ai/client": "^1.6.2",
     "@mux/mux-background-video": "^0.1.0",
+    "@mux/mux-node": "^12.8.0",
     "@radix-ui/react-slot": "^1.2.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
