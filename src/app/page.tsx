@@ -1,15 +1,19 @@
 'use client';
 
 import { MuxBackgroundVideo } from '@mux/mux-background-video/react';
+import MuxPlayer from '@mux/mux-player-react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useRef, useState } from 'react';
 
+
 interface VideoGenerationResponse {
   success: boolean;
   data?: any;
   videoUrl?: string;
+  muxPlaybackId?: string;
+  muxAssetId?: string;
   error?: string;
   details?: string;
 }
@@ -46,8 +50,8 @@ export default function Home() {
 
       const data: VideoGenerationResponse = await response.json();
 
-      if (data.success && data.videoUrl) {
-        setGeneratedVideo(data.videoUrl);
+      if (data.success && data.muxPlaybackId) {
+        setGeneratedVideo(data.muxPlaybackId);
       } else {
         setError(data.error || 'Failed to generate video');
       }
@@ -90,7 +94,7 @@ export default function Home() {
               className="flex-1 min-h-12 max-h-32 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 resize-none overflow-hidden"
               rows={1}
               onChange={handleInput}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyPress}
               disabled={isLoading}
             />
             <Button 
@@ -121,15 +125,12 @@ export default function Home() {
           {generatedVideo && (
             <div className="bg-white/10 border border-white/20 rounded-lg p-4 max-w-2xl w-full">
               <h3 className="text-white text-lg font-semibold mb-3 text-center">Generated Video</h3>
-              <video 
-                src={generatedVideo} 
-                controls 
+              <MuxPlayer 
+                playbackId={generatedVideo}
                 className="w-full rounded-lg"
                 autoPlay
                 muted
-              >
-                Your browser does not support the video tag.
-              </video>
+              />
               <div className="mt-3 text-center">
                 <a 
                   href={generatedVideo} 

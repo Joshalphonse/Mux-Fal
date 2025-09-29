@@ -42,6 +42,8 @@ export async function POST(request: NextRequest) {
             success: true,
             data: result,
             videoUrl: result.data?.video?.url,
+            muxPlaybackId: asset.playback_ids?.[0]?.id,
+            muxAssetId: asset.id,
         });
 
     } catch (error) {
