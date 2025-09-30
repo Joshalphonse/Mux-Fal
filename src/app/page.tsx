@@ -10,7 +10,7 @@ import { useRef, useState } from 'react';
 
 interface VideoGenerationResponse {
   success: boolean;
-  data?: any;
+  data?: Record<string, unknown>;
   videoUrl?: string;
   muxPlaybackId?: string;
   muxAssetId?: string;
