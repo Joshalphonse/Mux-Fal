@@ -36,7 +36,8 @@ Mux webhooks notify the app when a generated asset is ready to stream. For local
 
 1. Start ngrok: `ngrok http 3000`
 2. In the Mux dashboard, create a webhook pointing to `https://YOUR_NGROK_DOMAIN/api/mux-webhook`
-3. Subscribe to at least the `video.asset.ready` and `video.asset.errored` events
-4. Copy the webhook signing secret into `MUX_WEBHOOK_SECRET`
+3. Copy the webhook signing secret into `MUX_WEBHOOK_SECRET`
 
 Once configured, the `POST /api/generate-video` route will wait for the `video.asset.ready` webhook before returning the `muxPlaybackId`, ensuring the asset can play immediately in the UI.
+
+[Watch a demo video](https://player.mux.com/E01jAxtF2Nl3CO3QxGFcmFBoZH0100yS6NAcdC46PafkQQ)
