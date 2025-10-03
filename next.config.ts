@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   env: {
     MUX_PLAYBACK_ID: process.env.MUX_PLAYBACK_ID,
+    DEMO_MODE: process.env.DEMO_MODE,
   },
   images: {
     remotePatterns: [

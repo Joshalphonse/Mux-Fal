@@ -20,9 +20,19 @@ MUX_TOKEN_ID=your_mux_token_id
 MUX_TOKEN_SECRET=your_mux_token_secret
 MUX_WEBHOOK_SECRET=your_mux_webhook_secret
 MUX_PLAYBACK_ID=background_asset_playback_id
+DEMO_MODE=true
+DEMO_MUX_ASSET_ID=pre_generated_mux_asset_id
 ```
 
 `MUX_PLAYBACK_ID` is only used for the looping background video on the landing page.
+
+`DEMO_MODE` is optional. When set to `true`, the app skips live generation and returns the Mux asset referenced by `DEMO_MUX_ASSET_ID` unless a Fal.ai API key is supplied with the request.
+
+### Demo mode behaviour
+
+- When demo mode is active, the `/api/generate-video` route responds immediately with the configured Mux asset and adds a notice to the UI.
+- Visitors can bypass demo mode by providing their own Fal.ai API key in the UI field (“Fal.ai API key (optional)”), which is used only for that request.
+- Ensure the asset referenced by `DEMO_MUX_ASSET_ID` has a public playback policy. The API will create one automatically if needed.
 
 ## Running Locally
 
