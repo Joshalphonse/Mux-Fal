@@ -80,6 +80,10 @@ export async function POST(request: NextRequest) {
             input: {
                 prompt: trimmedPrompt,
                 aspect_ratio: "16:9",
+                duration: "8s",
+                generate_audio: false,
+                
+
             }
         });
 

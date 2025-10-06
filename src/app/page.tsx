@@ -33,6 +33,7 @@ export default function Home() {
   const [resultNotice, setResultNotice] = useState<string | null>(null);
   const [backgroundFailed, setBackgroundFailed] = useState(false);
   const demoModeEnabled = process.env.DEMO_MODE === 'true';
+  const [demoNoticeVisible, setDemoNoticeVisible] = useState(demoModeEnabled);
   const backgroundPlaybackId = process.env.MUX_PLAYBACK_ID;
   const backgroundStreamUrl = backgroundPlaybackId
     ? `https://stream.mux.com/${backgroundPlaybackId}.m3u8`
@@ -80,6 +81,7 @@ export default function Home() {
         setGeneratedVideoUrl(data.videoUrl || `https://stream.mux.com/${data.muxPlaybackId}.m3u8`);
         setIsDemoResult(Boolean(data.demoMode));
         setResultNotice(data.notice ?? null);
+        setDemoNoticeVisible(Boolean(data.demoMode));
       } else {
         setError(data.error || 'Failed to generate video');
       }
@@ -105,7 +107,7 @@ export default function Home() {
         <p className="text-white text-xl mb-8">AI Video Generation and Video Playback</p>
       </div>
 
-      {demoModeEnabled && (
+      {demoNoticeVisible && (
         <div className="bg-white/10 border border-white/20 rounded-lg p-4 text-white/90 mb-6 w-full max-w-2xl">
           <p className="font-medium">Demo mode is active.</p>
           <p className="text-sm text-white/80 mt-1">
