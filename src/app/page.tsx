@@ -108,34 +108,13 @@ export default function Home() {
       </div>
 
       {demoNoticeVisible && (
-        <div className="bg-white/10 border border-white/20 rounded-lg p-4 text-white/90 mb-6 w-full max-w-2xl">
+        <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4 text-white/90 mb-6 w-full max-w-2xl">
           <p className="font-medium">Demo mode is active.</p>
           <p className="text-sm text-white/80 mt-1">
-            Requests will return a pre-generated Mux video unless you enter a Fal.ai API key to run live generation.
+            Requests will return a pre-generated Mux video unless you enter a Fal.ai API key to run live generations.
           </p>
         </div>
       )}
-      
-      <div className="flex items-end gap-2 w-full max-w-2xl mb-6">
-        <Textarea 
-          ref={textareaRef}
-          value={prompt}
-          placeholder="Enter a prompt to generate video..." 
-          className="flex-1 min-h-12 max-h-32 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 resize-none overflow-hidden"
-          rows={1}
-          onChange={handleInput}
-          onKeyDown={handleKeyPress}
-          disabled={isLoading}
-        />
-        <Button 
-          onClick={handleSubmit}
-          disabled={isLoading || !prompt.trim()}
-          className="h-12 px-6 bg-white text-black hover:bg-white/90 font-medium shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? 'Generating...' : 'Generate'}
-        </Button>
-      </div>
-
       <div className="w-full max-w-2xl mb-6">
         <label className="block text-sm font-medium text-white/80 mb-2" htmlFor="fal-key">
           Fal.ai API key (optional)
@@ -157,6 +136,28 @@ export default function Home() {
         )}
       </div>
 
+      
+      <div className="flex items-end gap-2 w-full max-w-2xl mb-6">
+        <Textarea 
+          ref={textareaRef}
+          value={prompt}
+          placeholder="Enter a prompt to generate video..." 
+          className="flex-1 min-h-12 max-h-32 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 resize-none overflow-hidden"
+          rows={1}
+          onChange={handleInput}
+          onKeyDown={handleKeyPress}
+          disabled={isLoading}
+        />
+        <Button 
+          onClick={handleSubmit}
+          disabled={isLoading || !prompt.trim()}
+          className="h-12 px-6 bg-white text-black hover:bg-white/90 font-medium shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isLoading ? 'Generating...' : 'Generate'}
+        </Button>
+      </div>
+
+      
       {/* Loading State */}
       {isLoading && (
         <div className="text-center text-white">
