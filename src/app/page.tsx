@@ -103,8 +103,8 @@ export default function Home() {
   const mainContent = (
     <div className="content relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
       <div className="text-center mb-8">
-        <h1 className="text-white text-6xl font-bold mb-4">Mux x Fal.AI</h1>
-        <p className="text-white text-xl mb-8">AI Video Generation and Video Playback</p>
+        <h1 className="text-white text-6xl font-bold mb-4">Slop Social</h1>
+        <p className="text-white text-xl mb-8">Generate AI Slop Videos</p>
       </div>
 
       {demoNoticeVisible && (
