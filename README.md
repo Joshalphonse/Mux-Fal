@@ -1,4 +1,4 @@
-# Mux x Fal.AI
+#Slop Social
 
 This project uses [fal.ai](https://fal.ai/) to generate videos from prompts and [Mux](https://mux.com/) to host and play them back in a Next.js front-end.
 

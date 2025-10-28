@@ -51,7 +51,7 @@ export default function Home() {
 
   const handleSubmit = async () => {
     if (!prompt.trim()) return;
-    
+
     setIsLoading(true);
     setError(null);
     setGeneratedVideo(null);
@@ -102,10 +102,26 @@ export default function Home() {
 
   const mainContent = (
     <div className="content relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
-      <div className="text-center mb-8">
-        <h1 className="text-white text-6xl font-bold mb-4">Slop Social</h1>
-        <p className="text-white text-xl mb-8">Generate AI Slop Videos</p>
+      <div className="mb-8 flex items-center justify-center gap-4">
+        <Image
+          src="/Mux-Logo-Small-Putty.png"
+          alt="mux logo"
+          width={100}
+          height={100}
+          className="h-12 w-auto"
+          priority
+        />
+        <span className="text-white text-3xl font-bold">+</span>
+        <Image
+          src="/Fal-Logo-C1.png"
+          alt="fal.ai logo"
+          width={500}
+          height={500}
+          className="h-12 w-auto origin-center scale-200"
+          priority
+        />
       </div>
+      <span className="text-white text-xl font-bold">Generate AI Videos with fal.ai and play them back with Mux</span>
 
       {demoNoticeVisible && (
         <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4 text-white/90 mb-6 w-full max-w-2xl">
@@ -136,19 +152,19 @@ export default function Home() {
         )}
       </div>
 
-      
+
       <div className="flex items-end gap-2 w-full max-w-2xl mb-6">
-        <Textarea 
+        <Textarea
           ref={textareaRef}
           value={prompt}
-          placeholder="Enter a prompt to generate video..." 
+          placeholder="Enter a prompt to generate video..."
           className="flex-1 min-h-12 max-h-32 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 resize-none overflow-hidden"
           rows={1}
           onChange={handleInput}
           onKeyDown={handleKeyPress}
           disabled={isLoading}
         />
-        <Button 
+        <Button
           onClick={handleSubmit}
           disabled={isLoading || !prompt.trim()}
           className="h-12 px-6 bg-white text-black hover:bg-white/90 font-medium shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -157,7 +173,7 @@ export default function Home() {
         </Button>
       </div>
 
-      
+
       {/* Loading State */}
       {isLoading && (
         <div className="text-center text-white">
@@ -182,16 +198,16 @@ export default function Home() {
               {resultNotice || (isDemoResult && 'Demo result returned.')}
             </div>
           )}
-          <MuxPlayer 
+          <MuxPlayer
             playbackId={generatedVideo}
             className="w-full rounded-lg"
             autoPlay
             muted
           />
           <div className="mt-3 text-center">
-            <a 
-              href={generatedVideoUrl || `https://stream.mux.com/${generatedVideo}.m3u8`} 
-              target="_blank" 
+            <a
+              href={generatedVideoUrl || `https://stream.mux.com/${generatedVideo}.m3u8`}
+              target="_blank"
               rel="noopener noreferrer"
               className="text-white/80 hover:text-white underline text-sm"
             >
