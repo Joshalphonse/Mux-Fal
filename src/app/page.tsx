@@ -101,38 +101,42 @@ export default function Home() {
   };
 
   const mainContent = (
-    <div className="content relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
-      <div className="mb-8 flex items-center justify-center gap-4">
+    <div className="content relative z-10 flex min-h-screen w-full flex-col items-center justify-start gap-6 px-4 py-12 sm:gap-8 sm:py-16 md:justify-center">
+      <div className="flex flex-col items-center justify-center gap-3 text-center sm:flex-row sm:gap-4">
         <Image
           src="/Mux-Logo-Small-Putty.png"
           alt="mux logo"
           width={100}
           height={100}
-          className="h-12 w-auto"
+          className="h-10 w-auto sm:h-12"
           priority
         />
-        <span className="text-white text-3xl font-bold">+</span>
-        <Image
-          src="/Fal-Logo-C1.png"
-          alt="fal.ai logo"
-          width={500}
-          height={500}
-          className="h-12 w-auto origin-center scale-200"
-          priority
-        />
+        <span className="text-white text-2xl font-bold sm:text-3xl">+</span>
+        <div className="flex w-full items-center justify-center sm:w-auto">
+          <Image
+            src="/Fal-Logo-C1.png"
+            alt="fal.ai logo"
+            width={500}
+            height={500}
+            className="h-12 w-auto origin-center scale-[1.6] sm:scale-200"
+            priority
+          />
+        </div>
       </div>
-      <span className="text-white text-xl font-bold">Generate AI Videos with fal.ai and play them back with Mux</span>
+      <span className="text-center text-white text-lg font-bold sm:text-xl">
+        Generate AI Videos with fal.ai and play them back with Mux
+      </span>
 
       {demoNoticeVisible && (
-        <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4 text-white/90 mb-6 w-full max-w-2xl">
+        <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4 text-white/90 w-full max-w-2xl">
           <p className="font-medium">Demo mode is active.</p>
           <p className="text-sm text-white/80 mt-1">
             Requests will return a pre-generated Mux video unless you enter a Fal.ai API key to run live generations.
           </p>
         </div>
       )}
-      <div className="w-full max-w-2xl mb-6">
-        <label className="block text-sm font-medium text-white/80 mb-2" htmlFor="fal-key">
+      <div className="w-full max-w-2xl">
+        <label className="block text-xs font-medium text-white/80 mb-2 sm:text-sm" htmlFor="fal-key">
           Fal.ai API key (optional)
         </label>
         <Input
@@ -146,19 +150,19 @@ export default function Home() {
           autoComplete="off"
         />
         {falKey && (
-          <p className="text-xs text-white/70 mt-2">
+          <p className="text-xs text-white/70 mt-2 text-center sm:text-left">
             Your key stays in this session only and is sent directly to the server for this request.
           </p>
         )}
       </div>
 
 
-      <div className="flex items-end gap-2 w-full max-w-2xl mb-6">
+      <div className="flex w-full max-w-2xl flex-col items-stretch gap-3 sm:flex-row sm:items-end">
         <Textarea
           ref={textareaRef}
           value={prompt}
           placeholder="Enter a prompt to generate video..."
-          className="flex-1 min-h-12 max-h-32 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 resize-none overflow-hidden"
+          className="min-h-12 w-full max-h-32 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:border-white/40 resize-none overflow-hidden sm:flex-1"
           rows={1}
           onChange={handleInput}
           onKeyDown={handleKeyPress}
@@ -167,7 +171,7 @@ export default function Home() {
         <Button
           onClick={handleSubmit}
           disabled={isLoading || !prompt.trim()}
-          className="h-12 px-6 bg-white text-black hover:bg-white/90 font-medium shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="h-12 w-full bg-white px-6 text-black hover:bg-white/90 font-medium disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
         >
           {isLoading ? 'Generating...' : 'Generate'}
         </Button>
@@ -176,7 +180,7 @@ export default function Home() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="text-center text-white">
+        <div className="w-full max-w-2xl text-center text-white">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
           <p>Generating your video...</p>
         </div>
@@ -184,7 +188,7 @@ export default function Home() {
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4 max-w-2xl w-full">
+        <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-4 w-full max-w-2xl">
           <p className="text-red-200 text-center">{error}</p>
         </div>
       )}
@@ -220,11 +224,12 @@ export default function Home() {
   );
 
   return (
-    <div className="relative w-screen h-screen">
+    <div className="relative min-h-screen w-full overflow-x-hidden">
       {backgroundStreamUrl && !backgroundFailed ? (
         <MuxBackgroundVideo
           src={backgroundStreamUrl}
           onError={() => setBackgroundFailed(true)}
+          className="relative flex min-h-screen w-full"
         >
           {backgroundPosterUrl && (
             <Image
@@ -238,7 +243,7 @@ export default function Home() {
           {mainContent}
         </MuxBackgroundVideo>
       ) : (
-        <div className="relative w-full h-full">
+        <div className="relative flex min-h-screen w-full">
           {backgroundPosterUrl ? (
             <Image
               src={backgroundPosterUrl}
