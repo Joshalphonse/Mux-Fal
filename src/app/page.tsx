@@ -41,6 +41,9 @@ export default function Home() {
   const backgroundPosterUrl = backgroundPlaybackId
     ? `https://image.mux.com/${backgroundPlaybackId}/thumbnail.webp?time=0`
     : undefined;
+  const generatedPosterUrl = generatedVideo
+    ? `https://image.mux.com/${generatedVideo}/thumbnail.webp?time=0`
+    : undefined;
 
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const textarea = e.target;
@@ -202,12 +205,15 @@ export default function Home() {
               {resultNotice || (isDemoResult && 'Demo result returned.')}
             </div>
           )}
-          <MuxPlayer
-            playbackId={generatedVideo}
-            className="w-full rounded-lg"
-            autoPlay
-            muted
-          />
+          <div className="relative w-full overflow-hidden rounded-lg" style={{ aspectRatio: '16 / 9' }}>
+            <MuxPlayer
+              playbackId={generatedVideo}
+              poster={generatedPosterUrl}
+              className="h-full w-full"
+              autoPlay
+              muted
+            />
+          </div>
           <div className="mt-3 text-center">
             <a
               href={generatedVideoUrl || `https://stream.mux.com/${generatedVideo}.m3u8`}
