@@ -59,13 +59,3 @@ Paste your fal.ai API key in the input box and press Generate to bypass Demo Mod
 Once configured, the `POST /api/generate-video` route will wait for the `video.asset.ready` webhook before returning the `muxPlaybackId`, ensuring the asset can play immediately in the UI.
 
 [Watch a demo video](https://player.mux.com/E01jAxtF2Nl3CO3QxGFcmFBoZH0100yS6NAcdC46PafkQQ)
-
-## Branding (title and favicon)
-
-- Site title and description: edit `src/app/layout.tsx` `metadata.title` and `metadata.description`.
-- Favicon/app icon: add `src/app/icon.png` (recommended, e.g., 512×512) or replace `src/app/favicon.ico`. Next.js will pick these up automatically. You can also configure `icons` in `metadata` if needed.
-
-## Images
-
-- Remote images from `image.mux.com` are allowed by default via `next.config.ts`.
-- For other external hosts, either (a) add the domain under `images.remotePatterns` in `next.config.ts`, or (b) download the asset into `public/` and reference it like `/your-image.png`.
