@@ -53,8 +53,9 @@ Mux webhooks notify the app when a generated asset is ready to stream. For local
 3. Copy the webhook signing secret into `MUX_WEBHOOK_SECRET`
 
 ## Test the app
+Try out the web app [here](https://mux-fal.vercel.app/) OR 
 
-Paste your fal.ai API key in the input box and press Generate to bypass Demo Mode for a live generation.
+Clone this repo and paste your fal.ai API key in the input box and press Generate to bypass Demo Mode for a live generation.
 
 ***NOTE*** For live generations, ensure your webhook is reachable (e.g., run `ngrok http 3000`) so the app can receive `video.asset.ready` from Mux. fal.ai usage may incur costs.
 
