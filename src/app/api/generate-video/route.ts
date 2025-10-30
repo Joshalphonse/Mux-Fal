@@ -60,8 +60,20 @@ export async function POST(request: NextRequest) {
         const userFalKey = typeof falKey === "string" ? falKey.trim() : "";
         const shouldUseDemo = DEMO_MODE_ENABLED && !userFalKey;
 
+        // Diagnostics: which path will be taken
+        console.log(
+            "generate-video: demoMode=%s demoAssetIdSet=%s userFalKeyPresent=%s shouldUseDemo=%s",
+            DEMO_MODE_ENABLED,
+            Boolean(DEMO_ASSET_ID),
+            Boolean(userFalKey),
+            shouldUseDemo
+        );
+
         if (shouldUseDemo) {
             const { assetId, playbackId } = await resolveDemoAsset();
+
+            // Diagnostics: returning demo
+            console.log("generate-video: returning demo asset %s", assetId);
 
             return NextResponse.json({
                 success: true,
@@ -81,6 +93,13 @@ export async function POST(request: NextRequest) {
                 { status: 500 }
             );
         }
+
+        // Diagnostics: which credentials are used (masked)
+        const source = userFalKey ? "user" : "env";
+        const fingerprint = credentials.length > 8
+            ? `${credentials.slice(0, 4)}...${credentials.slice(-4)}`
+            : "short";
+        console.log("generate-video: using Fal credentials from %s key %s", source, fingerprint);
 
         const falClient = createFalClient({
             credentials,
@@ -115,13 +134,21 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (error) {
-        console.error("Error generating video:", error);
         const message = error instanceof Error ? error.message : "Unknown error";
-        const status = message.includes("Timed out") ? 504 : 500;
+        // Try to surface Fal-specific status/body if present
+        const anyError: any = error as any;
+        const falStatus: number | undefined = anyError?.status ?? anyError?.response?.status;
+        const falError = anyError?.error ?? anyError?.response?.data ?? null;
+        const status = typeof falStatus === "number" ? falStatus : (message.includes("Timed out") ? 504 : 500);
+
+        console.error("generate-video: error", { message, falStatus, falError });
+
         return NextResponse.json(
             {
                 error: "Failed to generate video",
-                details: message
+                details: message,
+                falStatus: falStatus ?? null,
+                falError,
             },
             { status }
         );
