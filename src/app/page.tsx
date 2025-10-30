@@ -117,7 +117,7 @@ export default function Home() {
         <span className="text-white text-2xl font-bold sm:text-3xl">+</span>
         <div className="flex w-full items-center justify-center sm:w-auto">
           <Image
-            src="/Fal-Logo-C1.png"
+            src="/Fal-logo-C1.png"
             alt="fal.ai logo"
             width={500}
             height={500}

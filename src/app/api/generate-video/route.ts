@@ -3,12 +3,22 @@ import { NextRequest, NextResponse } from "next/server";
 import muxClient from "@/lib/mux-client";
 import { waitForAssetReady } from "@/lib/mux-asset-tracker";
 
-const DEMO_MODE_ENABLED = process.env.DEMO_MODE === "true";
+export const runtime = 'nodejs';
+
+function parseBooleanEnv(value: string | undefined) {
+    return /^\s*(true|1)\s*$/i.test(value ?? "");
+}
+
+const DEMO_MODE_ENABLED = parseBooleanEnv(process.env.DEMO_MODE);
 const DEMO_ASSET_ID = process.env.DEMO_MUX_ASSET_ID;
 
 async function resolveDemoAsset() {
     if (!DEMO_ASSET_ID) {
         throw new Error("Demo mode is enabled but DEMO_MUX_ASSET_ID is not configured.");
+    }
+
+    if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
+        throw new Error("Demo mode requires MUX_TOKEN_ID and MUX_TOKEN_SECRET to retrieve the demo asset.");
     }
 
     const asset = await muxClient.video.assets.retrieve(DEMO_ASSET_ID);
@@ -93,14 +103,10 @@ export async function POST(request: NextRequest) {
             video_quality: 'basic',
         });
 
-        const readyEvent = await waitForAssetReady(asset.id);
-        const playbackId = readyEvent.data.playback_ids?.[0]?.id || asset.playback_ids?.[0]?.id;
-
         return NextResponse.json({
             success: true,
             data: result,
             videoUrl: result.data?.video?.url,
-            muxPlaybackId: playbackId,
             muxAssetId: asset.id,
             demoMode: false,
             notice: userFalKey
