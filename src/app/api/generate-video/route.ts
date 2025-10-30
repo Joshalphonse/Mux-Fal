@@ -1,13 +1,22 @@
 import { createFalClient } from "@fal-ai/client";
 import { NextRequest, NextResponse } from "next/server";
 import muxClient from "@/lib/mux-client";
-import { waitForAssetReady } from "@/lib/mux-asset-tracker";
+// import removed: waitForAssetReady was unused
 
 export const runtime = 'nodejs';
 
 function parseBooleanEnv(value: string | undefined) {
     return /^\s*(true|1)\s*$/i.test(value ?? "");
 }
+
+type FalErrorLike = {
+    status?: number;
+    error?: unknown;
+    response?: {
+        status?: number;
+        data?: unknown;
+    };
+};
 
 const DEMO_MODE_ENABLED = parseBooleanEnv(process.env.DEMO_MODE);
 const DEMO_ASSET_ID = process.env.DEMO_MUX_ASSET_ID;
@@ -136,9 +145,9 @@ export async function POST(request: NextRequest) {
     } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";
         // Try to surface Fal-specific status/body if present
-        const anyError: any = error as any;
-        const falStatus: number | undefined = anyError?.status ?? anyError?.response?.status;
-        const falError = anyError?.error ?? anyError?.response?.data ?? null;
+        const err = error as FalErrorLike;
+        const falStatus: number | undefined = err?.status ?? err?.response?.status;
+        const falError = err?.error ?? err?.response?.data ?? null;
         const status = typeof falStatus === "number" ? falStatus : (message.includes("Timed out") ? 504 : 500);
 
         console.error("generate-video: error", { message, falStatus, falError });
