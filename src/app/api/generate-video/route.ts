@@ -85,17 +85,17 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        const credentials = userFalKey || process.env.FAL_KEY;
-
-        if (!credentials) {
+        if (!userFalKey) {
             return NextResponse.json(
-                { error: "Fal credentials are not configured." },
-                { status: 500 }
+                { error: "Fal.ai API key is required when demo mode is disabled." },
+                { status: 400 }
             );
         }
 
+        const credentials = userFalKey;
+
         // Diagnostics: which credentials are used (masked)
-        const source = userFalKey ? "user" : "env";
+        const source = "user";
         const fingerprint = credentials.length > 8
             ? `${credentials.slice(0, 4)}...${credentials.slice(-4)}`
             : "short";
