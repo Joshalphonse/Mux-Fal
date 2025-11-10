@@ -1,12 +1,54 @@
 import { createFalClient } from "@fal-ai/client";
 import { NextRequest, NextResponse } from "next/server";
 import muxClient from "@/lib/mux-client";
-// import removed: waitForAssetReady was unused
 
 export const runtime = 'nodejs';
 
 function parseBooleanEnv(value: string | undefined) {
     return /^\s*(true|1)\s*$/i.test(value ?? "");
+}
+
+const DEFAULT_WAIT_TIMEOUT_MS = 120_000;
+const DEFAULT_POLL_INTERVAL_MS = 3_000;
+
+function coercePositiveInteger(value: string | undefined, fallback: number) {
+    const coerced = Number(value);
+    return Number.isFinite(coerced) && coerced > 0 ? coerced : fallback;
+}
+
+async function wait(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForAssetReady(
+    assetId: string,
+    {
+        timeoutMs = coercePositiveInteger(process.env.MUX_WAIT_TIMEOUT_MS, DEFAULT_WAIT_TIMEOUT_MS),
+        pollIntervalMs = coercePositiveInteger(process.env.MUX_POLL_INTERVAL_MS, DEFAULT_POLL_INTERVAL_MS),
+    } = {}
+) {
+    const startedAt = Date.now();
+    let lastStatus: string | undefined;
+
+    while (Date.now() - startedAt < timeoutMs) {
+        const asset = await muxClient.video.assets.retrieve(assetId);
+        lastStatus = asset.status;
+
+        if (asset.status === "ready") {
+            return asset;
+        }
+
+        if (asset.status === "errored") {
+            const errorMessage = asset.errors?.messages?.join(" ") || "Unknown asset error";
+            throw new Error(`Mux asset ${asset.id} failed processing: ${errorMessage}`);
+        }
+
+        await wait(pollIntervalMs);
+    }
+
+    throw new Error(
+        `Timed out waiting for Mux asset ${assetId} to become ready. Last known status: ${lastStatus ?? "unknown"}.`
+    );
 }
 
 type FalErrorLike = {
@@ -125,15 +167,22 @@ export async function POST(request: NextRequest) {
             }
         });
 
+        const sourceUrl = result.data?.video?.url;
+        if (typeof sourceUrl !== "string" || !sourceUrl) {
+            throw new Error("Fal.ai response did not include a video URL to ingest into Mux.");
+        }
+
         const asset = await muxClient.video.assets.create({
-            inputs: [{ url: result.data?.video?.url }],
+            inputs: [{ url: sourceUrl }],
             playback_policy: ['public'],
             video_quality: 'basic',
         });
 
-        let muxPlaybackId = asset.playback_ids?.[0]?.id;
+        const readyAsset = await waitForAssetReady(asset.id);
+
+        let muxPlaybackId = readyAsset.playback_ids?.[0]?.id;
         if (!muxPlaybackId) {
-            const playback = await muxClient.video.assets.createPlaybackId(asset.id, {
+            const playback = await muxClient.video.assets.createPlaybackId(readyAsset.id, {
                 policy: "public",
             });
             muxPlaybackId = playback.id;
@@ -143,9 +192,9 @@ export async function POST(request: NextRequest) {
             success: true,
             data: result,
             videoUrl: muxPlaybackId ? `https://stream.mux.com/${muxPlaybackId}.m3u8` : result.data?.video?.url,
-            muxAssetId: asset.id,
+            muxAssetId: readyAsset.id,
             muxPlaybackId: muxPlaybackId ?? null,
-            sourceUrl: result.data?.video?.url,
+            sourceUrl,
             demoMode: false,
             notice: userFalKey
                 ? "Demo mode bypassed. Using provided Fal.ai API key for live generation."
