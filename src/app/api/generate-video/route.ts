@@ -197,7 +197,7 @@ export async function POST(request: NextRequest) {
             sourceUrl,
             demoMode: false,
             notice: userFalKey
-                ? "Demo mode bypassed. Using provided Fal.ai API key for live generation."
+                ? "Demo mode bypassed."
                 : undefined,
         });
 
