@@ -131,11 +131,21 @@ export async function POST(request: NextRequest) {
             video_quality: 'basic',
         });
 
+        let muxPlaybackId = asset.playback_ids?.[0]?.id;
+        if (!muxPlaybackId) {
+            const playback = await muxClient.video.assets.createPlaybackId(asset.id, {
+                policy: "public",
+            });
+            muxPlaybackId = playback.id;
+        }
+
         return NextResponse.json({
             success: true,
             data: result,
-            videoUrl: result.data?.video?.url,
+            videoUrl: muxPlaybackId ? `https://stream.mux.com/${muxPlaybackId}.m3u8` : result.data?.video?.url,
             muxAssetId: asset.id,
+            muxPlaybackId: muxPlaybackId ?? null,
+            sourceUrl: result.data?.video?.url,
             demoMode: false,
             notice: userFalKey
                 ? "Demo mode bypassed. Using provided Fal.ai API key for live generation."

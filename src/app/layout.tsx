@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,8 +26,24 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
+        <div className="fixed right-4 top-4 z-50">
+          <a
+            href="https://github.com/muxinc/Mux-Fal"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open the Mux + fal.ai GitHub repository"
+          >
+            <Image
+              src="/github-mark-white.png"
+              alt="GitHub"
+              width={32}
+              height={32}
+              priority
+            />
+          </a>
+        </div>
         {children}
       </body>
     </html>
