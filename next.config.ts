@@ -12,13 +12,7 @@ const nextConfig: NextConfig = {
         hostname: 'image.mux.com',
         port: '',
         pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'github.com',
-        port: '',
-        pathname: '/**',
-      },
+      }
     ],
   },
   /* config options here */
