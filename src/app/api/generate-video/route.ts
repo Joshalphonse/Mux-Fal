@@ -65,7 +65,7 @@ const DEMO_ASSET_ID = process.env.DEMO_MUX_ASSET_ID;
 
 async function resolveDemoAsset() {
     if (!DEMO_ASSET_ID) {
-        throw new Error("Demo mode is enabled but DEMO_MUX_ASSET_ID is not configured.");
+        throw new Error("Demo mode is enabled but DEMO_MUX_ASSET_ID is not configured...");
     }
 
     if (!process.env.MUX_TOKEN_ID || !process.env.MUX_TOKEN_SECRET) {
