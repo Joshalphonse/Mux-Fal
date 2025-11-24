@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 
 interface VideoGenerationResponse {
@@ -15,10 +15,22 @@ interface VideoGenerationResponse {
   videoUrl?: string;
   muxPlaybackId?: string;
   muxAssetId?: string;
+  status?: string;
   error?: string;
   details?: string;
   demoMode?: boolean;
   notice?: string;
+}
+
+interface AssetStatusResponse {
+  assetId: string;
+  status: string;
+  playbackId: string | null;
+  errors?: {
+    messages?: string[];
+  };
+  error?: string;
+  details?: string;
 }
 
 export default function Home() {
@@ -32,6 +44,8 @@ export default function Home() {
   const [isDemoResult, setIsDemoResult] = useState(false);
   const [resultNotice, setResultNotice] = useState<string | null>(null);
   const [backgroundFailed, setBackgroundFailed] = useState(false);
+  const [assetStatus, setAssetStatus] = useState<string | null>(null);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const demoModeEnabled = process.env.DEMO_MODE === 'true';
   const [demoNoticeVisible, setDemoNoticeVisible] = useState(demoModeEnabled);
   const backgroundPlaybackId = process.env.MUX_PLAYBACK_ID;
@@ -45,6 +59,11 @@ export default function Home() {
     ? `https://image.mux.com/${generatedVideo}/thumbnail.webp?time=0`
     : undefined;
 
+  // Cleanup polling interval on unmount
+  useEffect(() => {
+    return stopPolling;
+  }, []);
+
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const textarea = e.target;
     setPrompt(e.target.value);
@@ -52,46 +71,108 @@ export default function Home() {
     textarea.style.height = `${textarea.scrollHeight}px`;
   };
 
+ 
+  const stopPolling = () => {
+    if (pollingIntervalRef.current) {
+      clearInterval(pollingIntervalRef.current);
+      pollingIntervalRef.current = null;
+    }
+  };
+
+  const pollAssetStatus = async (assetId: string) => {
+    try {
+      const response = await fetch(`/api/asset-status?assetId=${assetId}`);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server returned ${response.status}: ${errorText}`);
+      }
+      
+      const data: AssetStatusResponse = await response.json();
+
+      if (data.error) {
+        throw new Error(data.details || data.error);
+      }
+
+      setAssetStatus(data.status);
+
+      if (data.status === 'ready' && data.playbackId) {
+        stopPolling();
+        setGeneratedVideo(data.playbackId);
+        setGeneratedVideoUrl(`https://stream.mux.com/${data.playbackId}.m3u8`);
+        setIsLoading(false);
+        setAssetStatus(null);
+      } else if (data.status === 'errored') {
+        stopPolling();
+        setError(data.errors?.messages?.join(' ') || 'Video processing failed');
+        setIsLoading(false);
+        setAssetStatus(null);
+      }
+    } catch (err) {
+      stopPolling();
+      const errorMessage = err instanceof Error ? err.message : 'Failed to check video status';
+      setError(`Network error: ${errorMessage}`);
+      setIsLoading(false);
+      setAssetStatus(null);
+    }
+  };
+
   const handleSubmit = async () => {
     if (!prompt.trim()) return;
 
+    stopPolling();
     setIsLoading(true);
     setError(null);
     setGeneratedVideo(null);
     setGeneratedVideoUrl(null);
     setResultNotice(null);
     setIsDemoResult(false);
+    setAssetStatus(null);
 
     try {
       const payload: Record<string, string> = { prompt: prompt.trim() };
       const trimmedFalKey = falKey.trim();
-      if (trimmedFalKey) {
-        payload.falKey = trimmedFalKey;
-      }
+      if (trimmedFalKey) payload.falKey = trimmedFalKey;
 
       const response = await fetch('/api/generate-video', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
       const data: VideoGenerationResponse = await response.json();
 
-      if (data.success && data.muxPlaybackId) {
+      if (!data.success) {
+        setError(data.error || 'Failed to generate video');
+        setIsLoading(false);
+        return;
+      }
+
+      // Demo mode: immediate playback
+      if (data.demoMode && data.muxPlaybackId) {
         setGeneratedVideo(data.muxPlaybackId);
         setGeneratedVideoUrl(data.videoUrl || `https://stream.mux.com/${data.muxPlaybackId}.m3u8`);
-        setIsDemoResult(Boolean(data.demoMode));
+        setIsDemoResult(true);
         setResultNotice(data.notice ?? null);
-        setDemoNoticeVisible(Boolean(data.demoMode));
+        setDemoNoticeVisible(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Normal mode: poll for status
+      if (data.muxAssetId) {
+        const assetId = data.muxAssetId;
+        setResultNotice(data.notice ?? null);
+        setAssetStatus(data.status || 'preparing');
+        await pollAssetStatus(assetId);
+        pollingIntervalRef.current = setInterval(() => pollAssetStatus(assetId), 3000);
       } else {
-        setError(data.error || 'Failed to generate video');
+        setError('Failed to generate video');
+        setIsLoading(false);
       }
     } catch (err) {
       setError('Network error. Please try again.');
       console.error('Error:', err);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -185,7 +266,11 @@ export default function Home() {
       {isLoading && (
         <div className="w-full max-w-2xl text-center text-white">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
-          <p>Generating your video...</p>
+          <p>
+            {assetStatus 
+              ? `Processing video... Status: ${assetStatus}` 
+              : 'Generating your video...'}
+          </p>
         </div>
       )}
 

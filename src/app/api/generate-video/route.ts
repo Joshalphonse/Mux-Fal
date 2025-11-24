@@ -8,48 +8,6 @@ function parseBooleanEnv(value: string | undefined) {
     return /^\s*(true|1)\s*$/i.test(value ?? "");
 }
 
-const DEFAULT_WAIT_TIMEOUT_MS = 120_000;
-const DEFAULT_POLL_INTERVAL_MS = 3_000;
-
-function coercePositiveInteger(value: string | undefined, fallback: number) {
-    const coerced = Number(value);
-    return Number.isFinite(coerced) && coerced > 0 ? coerced : fallback;
-}
-
-async function wait(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function waitForAssetReady(
-    assetId: string,
-    {
-        timeoutMs = coercePositiveInteger(process.env.MUX_WAIT_TIMEOUT_MS, DEFAULT_WAIT_TIMEOUT_MS),
-        pollIntervalMs = coercePositiveInteger(process.env.MUX_POLL_INTERVAL_MS, DEFAULT_POLL_INTERVAL_MS),
-    } = {}
-) {
-    const startedAt = Date.now();
-    let lastStatus: string | undefined;
-
-    while (Date.now() - startedAt < timeoutMs) {
-        const asset = await muxClient.video.assets.retrieve(assetId);
-        lastStatus = asset.status;
-
-        if (asset.status === "ready") {
-            return asset;
-        }
-
-        if (asset.status === "errored") {
-            const errorMessage = asset.errors?.messages?.join(" ") || "Unknown asset error";
-            throw new Error(`Mux asset ${asset.id} failed processing: ${errorMessage}`);
-        }
-
-        await wait(pollIntervalMs);
-    }
-
-    throw new Error(
-        `Timed out waiting for Mux asset ${assetId} to become ready. Last known status: ${lastStatus ?? "unknown"}.`
-    );
-}
 
 type FalErrorLike = {
     status?: number;
@@ -111,7 +69,6 @@ export async function POST(request: NextRequest) {
         const userFalKey = typeof falKey === "string" ? falKey.trim() : "";
         const shouldUseDemo = DEMO_MODE_ENABLED && !userFalKey;
 
-        // Diagnostics: which path will be taken
         console.log(
             "generate-video: demoMode=%s demoAssetIdSet=%s userFalKeyPresent=%s shouldUseDemo=%s",
             DEMO_MODE_ENABLED,
@@ -123,7 +80,6 @@ export async function POST(request: NextRequest) {
         if (shouldUseDemo) {
             const { assetId, playbackId } = await resolveDemoAsset();
 
-            // Diagnostics: returning demo
             console.log("generate-video: returning demo asset %s", assetId);
 
             return NextResponse.json({
@@ -145,7 +101,6 @@ export async function POST(request: NextRequest) {
 
         const credentials = userFalKey;
 
-        // Diagnostics: which credentials are used (masked)
         const source = "user";
         const fingerprint = credentials.length > 8
             ? `${credentials.slice(0, 4)}...${credentials.slice(-4)}`
@@ -178,22 +133,11 @@ export async function POST(request: NextRequest) {
             video_quality: 'basic',
         });
 
-        const readyAsset = await waitForAssetReady(asset.id);
-
-        let muxPlaybackId = readyAsset.playback_ids?.[0]?.id;
-        if (!muxPlaybackId) {
-            const playback = await muxClient.video.assets.createPlaybackId(readyAsset.id, {
-                policy: "public",
-            });
-            muxPlaybackId = playback.id;
-        }
-
         return NextResponse.json({
             success: true,
             data: result,
-            videoUrl: muxPlaybackId ? `https://stream.mux.com/${muxPlaybackId}.m3u8` : result.data?.video?.url,
-            muxAssetId: readyAsset.id,
-            muxPlaybackId: muxPlaybackId ?? null,
+            muxAssetId: asset.id,
+            status: asset.status,
             sourceUrl,
             demoMode: false,
             notice: userFalKey
@@ -203,7 +147,6 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";
-        // Try to surface Fal-specific status/body if present
         const err = error as FalErrorLike;
         const falStatus: number | undefined = err?.status ?? err?.response?.status;
         const falError = err?.error ?? err?.response?.data ?? null;
