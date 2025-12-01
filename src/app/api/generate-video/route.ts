@@ -117,14 +117,12 @@ export async function POST(request: NextRequest) {
                 aspect_ratio: "16:9",
                 duration: "8s",
                 generate_audio: false,
-                
-
             }
         });
 
         const sourceUrl = result.data?.video?.url;
         if (typeof sourceUrl !== "string" || !sourceUrl) {
-            throw new Error("Fal.ai response did not include a video URL to ingest into Mux.");
+            throw new Error("fal.ai response did not include a video URL to ingest into Mux.");
         }
 
         const asset = await muxClient.video.assets.create({
